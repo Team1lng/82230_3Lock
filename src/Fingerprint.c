@@ -659,19 +659,38 @@ static int VerifyFingerPrintf(const FingerEvent *Event)
     if ((Num = AutoVerifyFinger(0xFFFF)) == 0xFFFF)
     {
         Debug("*************该指纹不存在**************\n");
-        FingerLightControl(1, RED, 3);
-        VoiceRingPlay(Bi4, VoiceDefVol);  //2025.6.16 hare 
+        FingerLightControl(1, RED, 6);
+        VoiceRingPlay(Bi4, VoiceDefVol);  
     }
     else
     {
         Debug("*************该指纹已存在 指纹ID:%d**************\n", Num);
-        FingerLightControl(1, GREEN, 1);
+        FingerLightControl(1, GREEN, 3);
         VoiceRingPlay(Bi2, VoiceDefVol);
 
-        if (FingerPermGet(Num) & LOCK_TYPE)
+        int perm = FingerPermGet(Num);
+        printf("[Fingerprint] ID:%d, Perm:0x%X (LOCK_TYPE:0x%X, GATE_TYPE:0x%X, LOCK_3_TYPE:0x%X)\n",
+               Num, perm, LOCK_TYPE, GATE_TYPE, LOCK_3_TYPE);
+
+        if (perm & LOCK_TYPE)
+        {
+            printf("[Fingerprint] Opening LOCK_TYPE\n");
             Unlock(UserConfigGet()->UnlockTime, LOCK_TYPE);
-        if (FingerPermGet(Num) & GATE_TYPE)
+        }
+        if (perm & GATE_TYPE)
+        {
+            printf("[Fingerprint] Opening GATE_TYPE\n");
             Unlock(UserConfigGet()->UngateTime, GATE_TYPE);
+        }
+        if (perm & LOCK_3_TYPE)
+        {
+            printf("[Fingerprint] Opening LOCK_3_TYPE\n");
+            Unlock(UserConfigGet()->Unlock_3_Time, LOCK_3_TYPE);
+        }
+        if (!(perm & (LOCK_TYPE | GATE_TYPE | LOCK_3_TYPE)))
+        {
+            printf("[Fingerprint] No valid lock type matched!\n");
+        }
     }
     return Num;
 }
@@ -682,14 +701,14 @@ static int AddFingerPrintf(const FingerEvent *Event)
     if (AutoEnrool(GetFingerInfo()->NextEnptyIndex))
     {
         GetFingerInfo()->Finger[GetFingerInfo()->NextEnptyIndex].Perm = LOCK_TYPE;
-        FingerLightControl(1, GREEN, 1);
+        FingerLightControl(1, GREEN, 3);
         ReadFingerModuleData();
         VoiceRingPlay(Bi2, VoiceDefVol);
         NetManageShortPack(1, ManageAddFinger, 1, 0);
     }
     else
     {
-        FingerLightControl(1, RED, 3);
+        FingerLightControl(1, RED, 6);
         VoiceRingPlay(Bi4, VoiceDefVol);
         NetManageShortPack(1, ManageAddFinger, 9, 0);
     }

@@ -121,7 +121,8 @@ int Unlock(int time, LockType type)
         {
             if (!TimerEnablestatus(GateTimer) && UserConfigGet()->UnlockVoiceEn)
             {
-                printf("aaaaaaaaaaaaaaaaaaaaaaa\n");
+                printf("[Unlock] Lock1 - About to play voice, Language:%d, VoiceIndex:%d\n",
+                       UserConfigGet()->Language, UserConfigGet()->Language + UnlockEng);
                 VoiceRingPlay(UserConfigGet()->Language + UnlockEng, VoiceDefVol);
             }
             printf("[%s] %ds\n", type == LOCK_TYPE ? "Unlock" : "Ungate", time);
@@ -146,13 +147,14 @@ int Unlock(int time, LockType type)
     else if(type == LOCK_3_TYPE){
         if (SetTimer(time * 1000, Lock_3_Timer, Lock_3_Colse, NULL))
         {
-            if (!TimerEnablestatus(type == LOCK_TYPE ? GateTimer : LockTimer) && UserConfigGet()->UnlockVoiceEn)
+            if (!TimerEnablestatus(LockTimer) && !TimerEnablestatus(GateTimer) && UserConfigGet()->UnlockVoiceEn)
             {
-                printf("cccccccccccccccccccccccccc\n");
+                printf("[Unlock] Lock3 - About to play voice, Language:%d, VoiceIndex:%d\n",
+                       UserConfigGet()->Language, UserConfigGet()->Language + UnlockEng);
                 VoiceRingPlay(UserConfigGet()->Language + UnlockEng, VoiceDefVol);
             }
-            printf("lock3%ds\n", time);
-            GpioLevelSet(LockGpio[type], GPIO_LEVEL_HIGH);
+            printf("lock3 %ds\n", time);
+            GpioLevelSet(LOCK_3_GPIO, GPIO_LEVEL_HIGH);
             // KeyLightControl(!(TimerEnablestatus(MonitorTimer) || TimerEnablestatus(CommunicateTimer)));
             return 1;
         }

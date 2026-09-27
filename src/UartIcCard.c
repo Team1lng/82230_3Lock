@@ -146,14 +146,31 @@ int UartIcCardModuleHandle(int *DrvFd, char *Data)
             SecurityErrorReset();
             VoiceRingPlay(Bi1, VoiceDefVol);
 
-            if (UserCardGet()->Deck[CardIndex].Perm & LOCK_TYPE)
+            int perm = UserCardGet()->Deck[CardIndex].Perm;
+            printf("[UartIcCard] CardIndex:%d, Perm:0x%X (LOCK_TYPE:0x%X, GATE_TYPE:0x%X, LOCK_3_TYPE:0x%X)\n",
+                   CardIndex, perm, LOCK_TYPE, GATE_TYPE, LOCK_3_TYPE);
+
+            if (perm & LOCK_TYPE)
+            {
+                printf("[UartIcCard] Opening LOCK_TYPE\n");
                 Unlock(UserConfigGet()->UnlockTime, LOCK_TYPE);
-            if (UserCardGet()->Deck[CardIndex].Perm & GATE_TYPE)
+            }
+            if (perm & GATE_TYPE)
+            {
+                printf("[UartIcCard] Opening GATE_TYPE\n");
                 Unlock(UserConfigGet()->UngateTime, GATE_TYPE);
-            if (UserCardGet()->Deck[CardIndex].Perm & 4)     //2025.4.21   LOCK_3_TYPE -> 4    
+            }
+            if (perm & LOCK_3_TYPE)
+            {
+                printf("[UartIcCard] Opening LOCK_3_TYPE\n");
                 Unlock(UserConfigGet()->Unlock_3_Time, LOCK_3_TYPE);
-            printf("Verify Card Succeed!!! Permissions[%s]\n", UserCardGet()->Deck[CardIndex].Perm == LOCK_TYPE ? "Lock" : UserCardGet()->Deck[CardIndex].Perm == GATE_TYPE ? "Gate"
-                                                                                                                                                                            : "Total");
+            }
+            if (!(perm & (LOCK_TYPE | GATE_TYPE | LOCK_3_TYPE)))
+            {
+                printf("[UartIcCard] No valid lock type matched!\n");
+            }
+
+            printf("Verify Card Succeed!!! Permissions[%s]\n", perm == LOCK_TYPE ? "Lock" : perm == GATE_TYPE ? "Gate" : "Total");
             return 1;
         }
     }

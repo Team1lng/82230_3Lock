@@ -26,3 +26,6 @@ AV100-*
 # 编译产物目录
 ipc_camera
 net_indoor
+
+# 指纹开发手册（二进制文件，不纳入版本管理）
+doc/MZ-V3.0.1开发手册.pdf

@@ -266,6 +266,7 @@ static void stop_log_daemons(void) {
 }
 
 static void* monitor_kernel_logs(void* arg) {
+    return NULL;
     FILE *log_file = NULL;
     char buffer[BUFFER_SIZE];
 

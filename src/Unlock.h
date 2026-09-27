@@ -12,9 +12,9 @@
 typedef enum
 {
     NONE_TYPE,
-    LOCK_TYPE = (1 << 0),
-    GATE_TYPE = (1 << 1),
-    LOCK_3_TYPE = (1 << 0) | (1 << 1),
+    LOCK_TYPE = (1 << 0),      // 0x1 - 第一把锁
+    GATE_TYPE = (1 << 1),      // 0x2 - 第二把锁（门）
+    LOCK_3_TYPE = (1 << 2),    // 0x4 - 第三把锁
 } LockType;
 
 /**

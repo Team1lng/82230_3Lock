@@ -1,4 +1,5 @@
 #include "UserFingerprint.h"
+#include "Unlock.h"
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -96,6 +97,23 @@ int FingerInfoInit(void)
     read(fd, &UserFinger, sizeof(FingerInfo));
     close(fd);
 
+    // 权限迁移：旧版本的 0x3 (LOCK1+LOCK2) 迁移到新版本的 0x4 (LOCK3)
+    int migrated = 0;
+    for (int i = 0; i < sizeof(UserFinger.Finger) / sizeof(Fingerprintf); i++)
+    {
+        if (UserFinger.Finger[i].Perm == 0x3)  // 旧的 LOCK_3_TYPE
+        {
+            UserFinger.Finger[i].Perm = 0x4;  // 新的 LOCK_3_TYPE
+            migrated = 1;
+            printf("[FingerInfoInit] Migrated finger[%d] permission from 0x3 to 0x4\n", i);
+        }
+    }
+    if (migrated)
+    {
+        FingerInfoSave();
+        printf("[FingerInfoInit] Fingerprint permissions migrated and saved\n");
+    }
+
     return 0;
 }
 
@@ -107,10 +125,13 @@ int FingerInfoInit(void)
  */
 int FingerSetPerm(int index, char Perm)
 {
+    printf("[FingerSetPerm] index:%d, Perm:0x%X (LOCK_TYPE:0x%X, GATE_TYPE:0x%X, LOCK_3_TYPE:0x%X)\n",
+           index, Perm, LOCK_TYPE, GATE_TYPE, LOCK_3_TYPE);
+
     if (index >= sizeof(UserFinger.Finger) / sizeof(Fingerprintf))
         return -1;
 
-    if (Perm < 0 || Perm > 3)
+    if (Perm < 0 || Perm > 7)
         return -1;
 
     if (!(UserFinger.Finger[index].Perm = Perm))

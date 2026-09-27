@@ -1,4 +1,5 @@
 #include "UserCard.h"
+#include "Unlock.h"
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -52,6 +53,23 @@ int UserDeckInit(void)
     read(fd, &UserDeck, sizeof(CardInfo));
 
     close(fd);
+
+    // 权限迁移：旧版本的 0x3 (LOCK1+LOCK2) 迁移到新版本的 0x4 (LOCK3)
+    int migrated = 0;
+    for (int i = 0; i < DECK_SIZE_MAX; i++)
+    {
+        if (UserDeck.Deck[i].Perm == 0x3)  // 旧的 LOCK_3_TYPE
+        {
+            UserDeck.Deck[i].Perm = 0x4;  // 新的 LOCK_3_TYPE
+            migrated = 1;
+            printf("[UserDeckInit] Migrated card[%d] permission from 0x3 to 0x4\n", i);
+        }
+    }
+    if (migrated)
+    {
+        UserCardSave();
+        printf("[UserDeckInit] Card permissions migrated and saved\n");
+    }
 
     return 1;
 }
@@ -116,6 +134,9 @@ int UserCardAdd(int index, char *data, char permissions)
  */
 int UserCardSetPerm(int index, char permissions)
 {
+    printf("[UserCardSetPerm] index:%d, permissions:0x%X (LOCK_TYPE:0x%X, GATE_TYPE:0x%X, LOCK_3_TYPE:0x%X)\n",
+           index, permissions, LOCK_TYPE, GATE_TYPE, LOCK_3_TYPE);
+
     if (index >= DECK_SIZE_MAX)
         return 0;
     if (permissions < 0 || permissions > 7)

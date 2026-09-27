@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #define Atoi(c) (c - 48)
+#define IsDigit(c) ((c) >= '0' && (c) <= '9')
 #define DEFAULT_FACTORY_SET_FLAG  9
 
 static ActionRoute RoutesMap[ActionTotal];
@@ -894,6 +895,7 @@ int DelUserCard(Keyboard *KeyAttr, struct ActionRoute *CurrRoute)
         SetTimer(30 * 1000, DelCardTimer, CloseAddDelCardMode, NULL);
         PushRouteStack(KeyDelCard);
         VoiceRingPlay(Bi2, VoiceDefVol);
+        CardLightFlashes();  //刷卡灯闪烁 hare 2025.4.25
         return 1;
     }
     else if (CardIndex < DECK_SIZE_MAX)
@@ -916,41 +918,50 @@ int ExitDelUserCard(Keyboard *KeyAttr, struct ActionRoute *CurrRoute)
 int SetLanguage(Keyboard *KeyAttr, struct ActionRoute *CurrRoute)
 {
     int ret = 0;
-    if (KeyAttr->Cursor == 5)
-    {
-        /* 修改默认出厂语言指令 9 + DEFAULT_FACTORY_SET_FLAG + language */
-        if(Atoi(KeyAttr->Buff[1]) == DEFAULT_FACTORY_SET_FLAG)
-        {
-            int Language = Atoi(KeyAttr->Buff[2]) * 10 + Atoi(KeyAttr->Buff[3]);
-            if (Language < LanguageTotal)
-            {
-                UserDefaultConfigGet()->Language = UserConfigGet()->Language = Language;
-                UserConfigSave();
-                UserDefaultConfigSave();
-                VoiceRingPlay(Bi2, VoiceDefVol);
-                printf("Modify Default Language [%d]\n", Language);
-                ret = 1;
-            goto set_language_exit;
-            }
-        }
-    }
-    if (KeyAttr->Cursor == 4)
-    {
+    int Digits = KeyAttr->Cursor - 1; /* 去掉结尾的 '#' */
+    int DefaultFlag = 0;
+    int Start = 1; /* 语言号在 Buff 中的起始下标 */
+    int Language = -1;
 
-    /* 修改语言指令 9 + language */
-        int Language = Atoi(KeyAttr->Buff[1]) * 10 + Atoi(KeyAttr->Buff[2]);
-        if (Language < LanguageTotal)
-        {
-            UserConfigGet()->Language = Language;
-            UserConfigSave();
-            VoiceRingPlay(Bi2, VoiceDefVol);
-            printf("Modify Language [%d]\n", UserConfigGet()->Language);
-            ret = 1;
-            goto set_language_exit;
-        }
+    /* 9 + 9 + ... 为出厂默认指令；90 ~ 99 不是合法语言号，故此处优先按出厂指令解析 */
+    if (Digits >= 3 && Atoi(KeyAttr->Buff[1]) == DEFAULT_FACTORY_SET_FLAG)
+    {
+        DefaultFlag = 1;
+        Start = 2;
     }
 
-set_language_exit:
+    switch (Digits - Start)
+    {
+    case 1:
+        if (IsDigit(KeyAttr->Buff[Start]))
+        {
+            Language = Atoi(KeyAttr->Buff[Start]);
+        }
+        break;
+    case 2:
+        if (IsDigit(KeyAttr->Buff[Start]) && IsDigit(KeyAttr->Buff[Start + 1]))
+        {
+            Language = Atoi(KeyAttr->Buff[Start]) * 10 + Atoi(KeyAttr->Buff[Start + 1]);
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (Language >= 0 && Language < LanguageTotal)
+    {
+        UserConfigGet()->Language = Language;
+        UserConfigSave();
+        if (DefaultFlag)
+        {
+            UserDefaultConfigGet()->Language = Language;
+            UserDefaultConfigSave();
+        }
+        VoiceRingPlay(Bi2, VoiceDefVol);
+        printf("Modify %sLanguage [%d] %s\n", DefaultFlag ? "Default " : "", Language, LanguageName(Language));
+        ret = 1;
+    }
+
     RefreshTimer(30 * 1000, AdminOutTimer);
     return ret;
 }

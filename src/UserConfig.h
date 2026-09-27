@@ -31,23 +31,41 @@ typedef enum
     AlarmMode,
 } SecurityMode;
 
+/*
+ * 语言列表：枚举与语言名表共用此宏，新增语言只需在此追加一行，
+ * 键盘秘密指令与语言名表会自动跟随。
+ * 注意：顺序即语言号，与 VoiceRingPlay.h 的 VOICE_LIST 插入位置严格对齐
+ * （语音索引由 UnlockEng + Language / LeaveMsgEng + Language 直接算出）。
+ */
+#define LANGUAGE_LIST(LANGUAGE) \
+    LANGUAGE(English)           \
+    LANGUAGE(Chinese)           \
+    LANGUAGE(Germany)           \
+    LANGUAGE(Hebrew)            \
+    LANGUAGE(Polish)            \
+    LANGUAGE(Portugal)          \
+    LANGUAGE(Spain)             \
+    LANGUAGE(French)            \
+    LANGUAGE(Japanese)          \
+    LANGUAGE(Ltaly)             \
+    LANGUAGE(Dutch)             \
+    LANGUAGE(Slovakia)          \
+    LANGUAGE(Arabic)
+
+#define DEFINE_LANGUAGE(LANGUAGE) LANGUAGE,
+
 typedef enum
 {
-    English,
-    Chinese,
-    Germany,
-    Hebrew,
-    Polish,
-    Portugal,
-    Spain,
-    French,
-    Japanese,
-    Ltaly,
-    Dutch,
-    Slovakia,
-    Arabic,
-    LanguageTotal,
+    LANGUAGE_LIST(DEFINE_LANGUAGE)
+        LanguageTotal,
 } Language;
+
+/**
+ * @description: 
+ * @param 
+ * @return 
+ */
+const char *LanguageName(int Index);
 
 typedef struct
 {

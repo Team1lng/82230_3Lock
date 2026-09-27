@@ -29,13 +29,25 @@ static UserConfig UserConfDefault = {
     .UngateTime = DEFAULT_UNLOCK_TIME,
     .UnlockTime = DEFAULT_UNLOCK_TIME,
     .NumKeyLightTime = 0,
-    .Language = Arabic,
+    .Language = French,
     .LockWay = CardOrCodeWay,
     .SafeMode = CloseSafe,
     .Unlock_3_Time = DEFAULT_UNLOCK_TIME,
     .Unlock_3_Code = {'2', '3', '4', '5', '6', '7', '\0'},
     .cmd_status = true,
 };
+
+#define DEFINE_LANGUAGE_NAME(LANGUAGE) [LANGUAGE] = #LANGUAGE,
+static const char *LanguageNameTable[LanguageTotal] = {LANGUAGE_LIST(DEFINE_LANGUAGE_NAME)};
+
+const char *LanguageName(int Index)
+{
+    if (Index < 0 || Index >= LanguageTotal || LanguageNameTable[Index] == NULL)
+    {
+        return "Unknown";
+    }
+    return LanguageNameTable[Index];
+}
 
 /**
  * @description: 保存默认用户配置

@@ -70,12 +70,13 @@ static void IdRepeatEventFunc(NetworkMsgPacket Packet)
 
 static void UnlockEventFunc(NetworkMsgPacket Packet)
 {
-#define UNLOCK_VOICE_INDEX (UnlockEng + ((Packet.Data.Arg[1] & 0x3C) >> 2))
+#define UNLOCK_VOICE_INDEX (UnlockEng + ((Packet.Data.Arg[1] & 0x78) >> 3))
 #define UNLOCK_TIME (Packet.Data.Arg[0])
 #define UNLOCK_TYPE ((Packet.Data.Arg[1] & 0x03))
     // VoiceRingPlay(UNLOCK_VOICE_INDEX, 100);
     int TmpLanguage = UserConfigGet()->Language;
-    UserConfigGet()->Language = ((Packet.Data.Arg[1] & 0x3C) >> 2);
+    int NewLanguage = ((Packet.Data.Arg[1] & 0x78) >> 3);
+    UserConfigGet()->Language = NewLanguage;
     Unlock(UNLOCK_TIME, UNLOCK_TYPE);
     UserConfigGet()->Language = TmpLanguage;
     UserConfigSave();

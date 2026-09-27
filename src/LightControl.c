@@ -40,7 +40,7 @@ LIGHT(CONTROL_FUNC_DEFINE)
 static void CardLightFlashesHandle(void *us)
 {
     static int Light = 1;
-    if (TimerEnablestatus(AddCardTimer))
+    if (TimerEnablestatus(AddCardTimer) || TimerEnablestatus(DelCardTimer))
     {
         CardLightControl((Light = !Light));
         SetTimer(200, CardLightFlashesTimer, CardLightFlashesHandle, NULL);

@@ -17,3 +17,12 @@ output/
 *.depend
 *.o
 upgrade/
+# VSCode 个人IDE配置
+.vscode/
+
+# 固件升级包（所有AV100开头的镜像文件）
+AV100-*
+
+# 编译产物目录
+ipc_camera
+net_indoor
